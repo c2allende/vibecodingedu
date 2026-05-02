@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Pareo: Ciencia</title>
+    <style>
+        :root { --primary: #6366f1; --bg: #f8fafc; --success: #22c55e; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; max-width: 500px; text-align: center; }
+        h1 { color: var(--primary); font-size: 1.5rem; }
+        .game-area { display: flex; justify-content: space-between; margin-top: 20px; gap: 10px; }
+        .column { display: flex; flex-direction: column; gap: 10px; width: 45%; }
+        .item { padding: 15px; background: #e2e8f0; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 0.9rem; }
+        .item.selected { background: var(--primary); color: white; }
+        .item.matched { background: var(--success); color: white; cursor: default; opacity: 0.7; }
+        #message { margin-top: 20px; font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pareo de Conceptos</h1>
+        <p>Selecciona un concepto y luego su definición</p>
+        <div class="game-area">
+            <div class="column" id="concepts"></div>
+            <div class="column" id="definitions"></div>
+        </div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const data = [
+            { c: "Núcleo", d: "Centro de control" },
+            { c: "Mitocondria", d: "Produce energía" },
+            { c: "Membrana", d: "Protege la célula" }
+        ];
+
+        let selectedConcept = null;
+        let matches = 0;
+
+        function init() {
+            const conceptsDiv = document.getElementById('concepts');
+            const defsDiv = document.getElementById('definitions');
+            
+            [...data].sort(() => Math.random() - 0.5).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerText = item.c;
+                div.onclick = () => selectConcept(div, item.c);
+                conceptsDiv.appendChild(div);
+            });
+
+            [...data].sort(() => Math.random() - 0.5).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerText = item.d;
+                div.onclick = () => selectDef(div, item.d);
+                defsDiv.appendChild(div);
+            });
+        }
+
+        function selectConcept(el, val) {
+            if (el.classList.contains('matched')) return;
+            document.querySelectorAll('#concepts .item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedConcept = { el, val };
+        }
+
+        function selectDef(el, val) {
+            if (!selectedConcept || el.classList.contains('matched')) return;
+            const pair = data.find(item => item.c === selectedConcept.val);
+            if (pair.d === val) {
+                el.classList.add('matched');
+                selectedConcept.el.classList.add('matched');
+                selectedConcept.el.classList.remove('selected');
+                selectedConcept = null;
+                matches++;
+                if (matches === data.length) document.getElementById('message').innerText = "¡Excelente trabajo! 🎉";
+            } else {
+                alert("Intenta de nuevo");
+            }
+        }
+        init();
+    </script>
+</body>
+</html>
