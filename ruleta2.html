@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ruleta Matemática</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Comic Sans MS','Segoe UI',sans-serif; }
+body {
+  background: linear-gradient(135deg, #FF6B9D 0%, #A855F7 50%, #3B82F6 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  color: #fff;
+  overflow-x: hidden;
+}
+h1 {
+  font-size: 2.2em;
+  text-align: center;
+  margin: 10px 0 15px;
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+}
+.score {
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(10px);
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-size: 1.3em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  border: 2px solid rgba(255,255,255,0.4);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+.ruleta-cont {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 15px 0;
+}
+.ruleta {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(
+    #FF6B6B 0deg 45deg,
+    #FFD93D 45deg 90deg,
+    #6BCB77 90deg 135deg,
+    #4D96FF 135deg 180deg,
+    #9B59B6 180deg 225deg,
+    #FF8C42 225deg 270deg,
+    #26A69A 270deg 315deg,
+    #E74C3C 315deg 360deg
+  );
+  border: 8px solid #fff;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4), inset 0 0 20px rgba(0,0,0,0.1);
+  transition: transform 4s cubic-bezier(0.33, 1, 0.68, 1);
+  position: relative;
+}
+.ruleta::after {
+  content: '×';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+  font-weight: bold;
+  color: #A855F7;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.flecha {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 22px solid transparent;
+  border-right: 22px solid transparent;
+  border-top: 38px solid #fff;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+  z-index: 10;
+}
+.btn-girar {
+  padding: 16px 40px;
+  font-size: 1.3em;
+  font-weight: bold;
+  border: none;
+  border-radius: 30px;
+  background: #fff;
+  color: #A855F7;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  margin: 15px 0;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-girar:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+}
+.btn-girar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.pregunta {
+  background: rgba(255,255,255,0.97);
+  color: #333;
+  padding: 25px;
+  border-radius: 25px;
+  margin: 15px;
+  text-align: center;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+  width: 90%;
+  max-width: 400px;
+  display: none;
+  animation: aparecer 0.4s ease-out;
+}
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(20px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.pregunta h2 {
+  color: #A855F7;
+  font-size: 2.2em;
+  margin-bottom: 18px;
+}
+.input-resp {
+  padding: 14px;
+  font-size: 1.4em;
+  border: 3px solid #A855F7;
+  border-radius: 15px;
+  width: 130px;
+  text-align: center;
+  font-weight: bold;
+  color: #333;
+  outline: none;
+}
+.input-resp:focus {
+  border-color: #FF6B9D;
+  box-shadow: 0 0 0 4px rgba(255,107,157,0.2);
+}
+.btn-verificar {
+  padding: 12px 28px;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #6BCB77, #27AE60);
+  color: #fff;
+  cursor: pointer;
+  margin: 12px 5px;
+  box-shadow: 0 4px 12px rgba(39,174,96,0.4);
+}
+.feedback {
+  font-size: 1.4em;
+  font-weight: bold;
+  margin-top: 15px;
+  min-height: 40px;
+}
+.correcto { color: #27AE60; }
+.incorrecto { color: #E74C3C; }
+.confeti {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  z-index: 999;
+  border-radius: 2px;
+}
+@keyframes caer {
+  to {
+    transform: translateY(105vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+@media (max-width: 480px) {
+  .ruleta-cont { width: 260px; height: 260px; }
+  h1 { font-size: 1.8em; }
+  .pregunta h2 { font-size: 1.8em; }
+}
+</style>
+</head>
+<body>
+<h1>🎡 Ruleta Matemática 🎡</h1>
+<div class="score">⭐ Aciertos: <span id="score">0</span></div>
+<div class="ruleta-cont">
+  <div class="flecha"></div>
+  <div class="ruleta" id="ruleta"></div>
+</div>
+<button class="btn-girar" id="btnGirar" onclick="girar()">¡Girar Ruleta!</button>
+<div class="pregunta" id="pregunta">
+  <h2 id="operacion"></h2>
+  <input type="number" class="input-resp" id="respuesta" placeholder="?" onkeypress="if(event.key==='Enter')verificar()">
+  <br>
+  <button class="btn-verificar" onclick="verificar()">Verificar</button>
+  <div class="feedback" id="feedback"></div>
+</div>
+
+<script>
+let score = 0;
+let respCorrecta = 0;
+let rotacion = 0;
+
+function girar() {
+  document.getElementById('btnGirar').disabled = true;
+  document.getElementById('pregunta').style.display = 'none';
+  rotacion += 1440 + Math.floor(Math.random() * 360);
+  document.getElementById('ruleta').style.transform = 'rotate(' + rotacion + 'deg)';
+  setTimeout(() => {
+    const a = Math.floor(Math.random() * 8) + 2;
+    const b = Math.floor(Math.random() * 8) + 2;
+    respCorrecta = a * b;
+    document.getElementById('operacion').textContent = a + ' × ' + b + ' = ?';
+    document.getElementById('respuesta').value = '';
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('pregunta').style.display = 'block';
+    document.getElementById('respuesta').focus();
+  }, 4000);
+}
+
+function verificar() {
+  const r = parseInt(document.getElementById('respuesta').value);
+  const fb = document.getElementById('feedback');
+  if (isNaN(r)) {
+    fb.textContent = 'Escribe un número 🤔';
+    fb.className = 'feedback incorrecto';
+    return;
+  }
+  if (r === respCorrecta) {
+    fb.textContent = '¡Excelente! 🎉';
+    fb.className = 'feedback correcto';
+    score++;
+    document.getElementById('score').textContent = score;
+    lanzarConfeti();
+  } else {
+    fb.textContent = 'La respuesta era ' + respCorrecta + ' 💪 ¡Sigue intentando!';
+    fb.className = 'feedback incorrecto';
+  }
+  document.getElementById('btnGirar').disabled = false;
+}
+
+function lanzarConfeti() {
+  const colores = ['#FF6B6B','#FFD93D','#6BCB77','#4D96FF','#9B59B6','#FF8C42','#26A69A'];
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.className = 'confeti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.top = '-20px';
+    c.style.background = colores[Math.floor(Math.random() * colores.length)];
+    c.style.animation = 'caer ' + (2 + Math.random() * 2) + 's linear';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4000);
+  }
+}
+</script>
+</body>
+</html>
