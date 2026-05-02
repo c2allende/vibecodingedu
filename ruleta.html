@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta Matemática Interactiva</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #f43f5e;
+            --accent: #fbbf24;
+            --bg: #f0f9ff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 1rem; font-size: 1.5rem; }
+
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #fff;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+            background: conic-gradient(
+                #f43f5e 0deg 45deg, #fbbf24 45deg 90deg, 
+                #22c55e 90deg 135deg, #0ea5e9 135deg 180deg,
+                #6366f1 180deg 225deg, #a855f7 225deg 270deg,
+                #ec4899 270deg 315deg, #f97316 315deg 360deg
+            );
+        }
+
+        .pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 40px;
+            background: var(--text);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 10;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button:active { transform: scale(0.95); }
+        button:disabled { background: #cbd5e1; }
+
+        .challenge-card {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px dashed var(--primary);
+            border-radius: 15px;
+            display: none;
+        }
+
+        #problem { font-size: 2rem; font-weight: 800; margin-bottom: 10px; }
+
+        input {
+            width: 80px;
+            padding: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .feedback { font-weight: bold; margin-top: 10px; min-height: 24px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎡 Ruleta Matemática</h1>
+        
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <div id="wheel"></div>
+        </div>
+
+        <button id="spinBtn">¡GIRAR RULETA!</button>
+
+        <div id="challenge" class="challenge-card">
+            <div id="problem">? + ?</div>
+            <input type="number" id="answer" placeholder="?">
+            <button id="checkBtn">Validar</button>
+            <div id="feedback" class="feedback"></div>
+        </div>
+    </div>
+
+    <script>
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spinBtn');
+        const challenge = document.getElementById('challenge');
+        const problemDisplay = document.getElementById('problem');
+        const answerInput = document.getElementById('answer');
+        const checkBtn = document.getElementById('checkBtn');
+        const feedback = document.getElementById('feedback');
+
+        let currentRotation = 0;
+        let correctAnswer = 0;
+
+        function generateProblem() {
+            const isAddition = Math.random() > 0.5;
+            let num1, num2;
+
+            if (isAddition) {
+                num1 = Math.floor(Math.random() * 10) + 1;
+                num2 = Math.floor(Math.random() * 10) + 1;
+                correctAnswer = num1 + num2;
+                problemDisplay.innerText = `${num1} + ${num2}`;
+            } else {
+                num1 = Math.floor(Math.random() * 10) + 11;
+                num2 = Math.floor(Math.random() * 10) + 1;
+                correctAnswer = num1 - num2;
+                problemDisplay.innerText = `${num1} - ${num2}`;
+            }
+        }
+
+        spinBtn.addEventListener('click', () => {
+            const extraDegrees = Math.floor(Math.random() * 360) + 1440; // 4 vueltas min
+            currentRotation += extraDegrees;
+            
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+            spinBtn.disabled = true;
+            challenge.style.display = 'none';
+            feedback.innerText = '';
+            answerInput.value = '';
+
+            setTimeout(() => {
+                generateProblem();
+                challenge.style.display = 'block';
+                spinBtn.disabled = false;
+            }, 4000);
+        });
+
+        checkBtn.addEventListener('click', () => {
+            const userAnswer = parseInt(answerInput.value);
+            if (userAnswer === correctAnswer) {
+                feedback.innerText = "¡Correcto! 🌟";
+                feedback.style.color = "#22c55e";
+            } else {
+                feedback.innerText = "Intenta de nuevo ❌";
+                feedback.style.color = "#f43f5e";
+            }
+        });
+    </script>
+</body>
+</html>
