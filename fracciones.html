@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Fracciones Pro</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --success: #22c55e;
+            --error: #ef4444;
+            --glass: rgba(255, 255, 255, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 2px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .score-board {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .fraction-visual {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px auto;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 2rem;
+        }
+
+        input {
+            width: 70px;
+            padding: 10px;
+            border-radius: 12px;
+            border: 3px solid var(--primary);
+            text-align: center;
+            font-size: 1.5rem;
+            outline: none;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:active { transform: scale(0.95); }
+
+        .feedback {
+            margin-top: 15px;
+            font-size: 1.3rem;
+            min-height: 1.5em;
+            font-weight: bold;
+        }
+
+        /* Animación de vibración para error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .vibrate { animation: shake 0.3s linear 3; }
+
+        .confetti {
+            position: fixed; width: 10px; height: 10px; pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="gameCard">
+        <div class="score-board">⭐ Puntos: <span id="score">0</span></div>
+        <p>¿Qué fracción está sombreada?</p>
+        
+        <div class="fraction-visual" id="visual">
+            </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <input type="number" id="num" placeholder="?">
+                <span>/</span>
+                <input type="number" id="den" placeholder="?">
+            </div>
+            <button onclick="check()">Validar Respuesta</button>
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentNum, currentDen;
+
+        function initLevel() {
+            // Generar denominador entre 2 y 8
+            currentDen = Math.floor(Math.random() * 7) + 2;
+            // Numerador menor o igual al denominador
+            currentNum = Math.floor(Math.random() * (currentDen - 1)) + 1;
+            
+            drawFraction(currentNum, currentDen);
+            
+            document.getElementById('num').value = '';
+            document.getElementById('den').value = '';
+            document.getElementById('feedback').innerText = '';
+            document.getElementById('gameCard').classList.remove('vibrate');
+            document.getElementById('num').focus();
+        }
+
+        function drawFraction(n, d) {
+            const container = document.getElementById('visual');
+            let paths = '';
+            const angleStep = 360 / d;
+
+            for (let i = 0; i < d; i++) {
+                const startAngle = i * angleStep;
+                const endAngle = (i + 1) * angleStep;
+                const color = i < n ? '#6366f1' : '#e2e8f0';
+                
+                // Cálculo de coordenadas para el arco del pastel
+                const x1 = 100 + 80 * Math.cos(Math.PI * startAngle / 180);
+                const y1 = 100 + 80 * Math.sin(Math.PI * startAngle / 180);
+                const x2 = 100 + 80 * Math.cos(Math.PI * endAngle / 180);
+                const y2 = 100 + 80 * Math.sin(Math.PI * endAngle / 180);
+                
+                paths += `<path d="M100,100 L${x1},${y1} A80,80 0 0,1 ${x2},${y2} Z" fill="${color}" stroke="white" stroke-width="2"/>`;
+            }
+
+            container.innerHTML = `<svg viewBox="0 0 200 200">${paths}</svg>`;
+        }
+
+        function check() {
+            const userNum = parseInt(document.getElementById('num').value);
+            const userDen = parseInt(document.getElementById('den').value);
+            const fb = document.getElementById('feedback');
+            const card = document.getElementById('gameCard');
+
+            if (userNum === currentNum && userDen === currentDen) {
+                score += 10;
+                document.getElementById('score').innerText = score;
+                fb.innerText = "¡Excelente! 🎉";
+                fb.style.color = "var(--success)";
+                launchConfetti();
+                setTimeout(initLevel, 2000);
+            } else {
+                card.classList.add('vibrate');
+                fb.innerText = `Casi... la respuesta era ${currentNum}/${currentDen} 💪`;
+                fb.style.color = "var(--error)";
+                setTimeout(() => {
+                    card.classList.remove('vibrate');
+                    initLevel();
+                }, 3000);
+            }
+        }
+
+        function launchConfetti() {
+            for(let i=0; i<50; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.top = '-10px';
+                c.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+                c.style.animation = `fall ${1+Math.random()*2}s linear forwards`;
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 3000);
+            }
+        }
+
+        // Estilo de animación de confeti inyectado
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes fall { to { transform: translateY(105vh) rotate(360deg); opacity: 0; } }`;
+        document.head.appendChild(style);
+
+        initLevel();
+    </script>
+</body>
+</html>
