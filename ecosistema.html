@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Ecosistema</title>
+    <style>
+        :root {
+            --bg: #ecfdf5;
+            --panel: #ffffff;
+            --primary: #10b981;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .controls {
+            background: var(--panel);
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            justify-content: center;
+            z-index: 10;
+        }
+
+        button {
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: transform 0.1s;
+        }
+
+        button:active { transform: scale(0.95); }
+        .btn-p { background: #22c55e; } /* Planta */
+        .btn-h { background: #eab308; } /* Herbívoro */
+        .btn-c { background: #ef4444; } /* Carnívoro */
+
+        #ecosystem {
+            flex-grow: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background: #f0fdf4;
+        }
+
+        .organism {
+            position: absolute;
+            transition: all 0.5s linear;
+            font-size: 2rem;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button class="btn-p" onclick="addOrganism('plant')">🌱 Planta</button>
+        <button class="btn-h" onclick="addOrganism('herbivore')">🐰 Herbívoro</button>
+        <button class="btn-c" onclick="addOrganism('carnivore')">🐺 Carnívoro</button>
+        <button style="background: #64748b" onclick="reset()">Limpiar</button>
+    </div>
+
+    <div id="ecosystem"></div>
+
+    <script>
+        const ecosystem = document.getElementById('ecosystem');
+        let organisms = [];
+
+        function addOrganism(type) {
+            const org = {
+                id: Date.now() + Math.random(),
+                type: type,
+                x: Math.random() * (window.innerWidth - 40),
+                y: Math.random() * (ecosystem.offsetHeight - 40),
+                emoji: type === 'plant' ? '🌱' : (type === 'herbivore' ? '🐰' : '🐺'),
+                el: document.createElement('div')
+            };
+
+            org.el.className = 'organism';
+            org.el.innerText = org.emoji;
+            updatePosition(org);
+            ecosystem.appendChild(org.el);
+            organisms.push(org);
+        }
+
+        function updatePosition(org) {
+            org.el.style.left = org.x + 'px';
+            org.el.style.top = org.y + 'px';
+        }
+
+        function gameLoop() {
+            organisms.forEach((org, index) => {
+                if (org.type === 'plant') return;
+
+                let target = null;
+                let minDist = Infinity;
+
+                // Lógica de búsqueda
+                organisms.forEach(other => {
+                    if (org.type === 'herbivore' && other.type === 'plant') {
+                        const d = dist(org, other);
+                        if (d < minDist) { minDist = d; target = other; }
+                    }
+                    if (org.type === 'carnivore' && other.type === 'herbivore') {
+                        const d = dist(org, other);
+                        if (d < minDist) { minDist = d; target = other; }
+                    }
+                });
+
+                if (target) {
+                    // Mover hacia el objetivo
+                    const dx = target.x - org.x;
+                    const dy = target.y - org.y;
+                    const angle = Math.atan2(dy, dx);
+                    org.x += Math.cos(angle) * 15;
+                    org.y += Math.sin(angle) * 15;
+
+                    // Interacción (comer)
+                    if (dist(org, target) < 30) {
+                        target.el.remove();
+                        organisms = organisms.filter(o => o.id !== target.id);
+                    }
+                } else {
+                    // Movimiento errático si no hay comida
+                    org.x += (Math.random() - 0.5) * 20;
+                    org.y += (Math.random() - 0.5) * 20;
+                }
+
+                // Límites de pantalla
+                org.x = Math.max(0, Math.min(window.innerWidth - 40, org.x));
+                org.y = Math.max(0, Math.min(ecosystem.offsetHeight - 40, org.y));
+                
+                updatePosition(org);
+            });
+
+            requestAnimationFrame(() => setTimeout(gameLoop, 100));
+        }
+
+        function dist(o1, o2) {
+            return Math.sqrt((o1.x - o2.x)**2 + (o1.y - o2.y)**2);
+        }
+
+        function reset() {
+            ecosystem.innerHTML = '';
+            organisms = [];
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
