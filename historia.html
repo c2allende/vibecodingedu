@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Línea de Tiempo: Descubrimiento de América</title>
+    <style>
+        :root {
+            --primary: #8b5e3c;
+            --secondary: #d4a373;
+            --accent: #bc6c25;
+            --bg: #fefae0;
+            --text: #283618;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 { color: var(--accent); text-align: center; margin-bottom: 40px; }
+
+        .timeline {
+            position: relative;
+            max-width: 600px;
+            width: 100%;
+            padding: 20px 0;
+        }
+
+        /* Línea central */
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: var(--secondary);
+            top: 0;
+            bottom: 0;
+            left: 20px;
+            border-radius: 3px;
+        }
+
+        .event {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .event:hover { transform: translateX(10px); }
+
+        /* Los círculos de la línea */
+        .event::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 13px;
+            background-color: white;
+            border: 4px solid var(--accent);
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .year { font-weight: bold; color: var(--accent); font-size: 1.2rem; }
+        .title { font-weight: bold; margin-bottom: 5px; }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        .close-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🌎 El Encuentro de Dos Mundos</h1>
+
+    <div class="timeline" id="timeline"></div>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalYear" class="year"></h2>
+            <h3 id="modalTitle"></h3>
+            <p id="modalDesc"></p>
+            <button class="close-btn" onclick="closeModal()">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        const events = [
+            { year: "Abril 1492", title: "Capitulaciones de Santa Fe", desc: "Los Reyes Católicos acuerdan financiar la expedición de Cristóbal Colón hacia las Indias." },
+            { year: "3 Ago 1492", title: "La Salida", desc: "Colón parte del Puerto de Palos con tres embarcaciones: La Pinta, La Niña y La Santa María." },
+            { year: "12 Oct 1492", title: "Tierra a la vista", desc: "Rodrigo de Triana avista tierra. Desembarcan en la isla de Guanahani (San Salvador)." },
+            { year: "Dic 1492", title: "La Española", desc: "Se funda el Fuerte Navidad en la isla de La Española tras el naufragio de la Santa María." },
+            { year: "Ene 1493", title: "El Regreso", desc: "Colón inicia el viaje de vuelta a España para informar a los Reyes de sus descubrimientos." }
+        ];
+
+        const timeline = document.getElementById('timeline');
+        const modal = document.getElementById('myModal');
+
+        events.forEach(ev => {
+            const div = document.createElement('div');
+            div.className = 'event';
+            div.innerHTML = `
+                <div class="content">
+                    <div class="year">${ev.year}</div>
+                    <div class="title">${ev.title}</div>
+                    <small>Ver más +</small>
+                </div>
+            `;
+            div.onclick = () => openModal(ev);
+            timeline.appendChild(div);
+        });
+
+        function openModal(ev) {
+            document.getElementById('modalYear').innerText = ev.year;
+            document.getElementById('modalTitle').innerText = ev.title;
+            document.getElementById('modalDesc').innerText = ev.desc;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = (event) => { if (event.target == modal) closeModal(); }
+    </script>
+</body>
+</html>
